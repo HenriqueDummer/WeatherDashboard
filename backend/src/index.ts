@@ -1,27 +1,24 @@
-import { WebSocketServer } from "ws"  
+import express from "express"
+import cors from "cors" 
+import { registerWeatherSocket } from "./websocket/weather.websocket.js"
+import { WebSocketServer } from "ws"
+import { weatherRouter } from "./routes/weather.route.js"
+
+const app = express()
+
+app.use(cors())
+app.use(express.json())
+
+app.use("/weather", weatherRouter)
+
+const server = app.listen(3001, () => {
+  console.log("HTTP server running on port 3001")
+})
 
 const wss = new WebSocketServer({
-  port: 3001,
+  server,
 })
 
-wss.on("connection", (ws) => {
-  console.log("Client connected")
-})
+registerWeatherSocket(wss)
 
-async function broadcastWeather() {
-  const response = await fetch(
-    "https://api.open-meteo.com/v1/forecast?latitude=-29.46&longitude=-51.96&current=temperature_2m,relative_humidity_2m,wind_speed_10m"
-  )
-
-  const data = await response.json()
-
-  wss.clients.forEach((client) => {
-    client.send(JSON.stringify(data))
-  })
-
-  console.log(data)
-}
-
-setInterval(broadcastWeather, 1000 * 60)
-
-console.log("WebSocket server running on port 3001")
+console.log("WebSocket server running")

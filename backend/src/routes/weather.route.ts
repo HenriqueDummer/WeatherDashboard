@@ -1,7 +1,24 @@
 import { Router } from "express";
-import { getWeather } from "../services/weather.service.js";
+import {
+	getMainWorldCitiesWeather,
+	getWeather,
+} from "../services/weather.service.js";
 
 export const weatherRouter = Router();
+
+weatherRouter.get("/main-cities", async (_req, res) => {
+	try {
+		const weather = await getMainWorldCitiesWeather();
+
+		return res.json(weather);
+	} catch (error) {
+		console.error(error);
+
+		return res.status(500).json({
+			error: "Internal server error",
+		});
+	}
+});
 
 weatherRouter.get("/", async (req, res) => {
 	try {

@@ -40,7 +40,7 @@ export function registerWeatherSocket(wss: WebSocketServer) {
 
 		sendWeather();
 
-		const interval = setInterval(sendWeather, 1000 * 5);
+		const interval = setInterval(sendWeather, 1000 * 60 * 5);
 
 		ws.on("close", () => {
 			console.log("Client disconnected");

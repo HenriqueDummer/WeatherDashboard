@@ -5,6 +5,10 @@ export interface WeatherData {
 	humidity: number;
 	windSpeed: number;
 	time: string;
+	apparentTemperature?: number;
+	precipitation?: number;
+	cloudCover?: number;
+	weatherCode?: number;
 }
 
 const WEATHER_SOCKET_URL =

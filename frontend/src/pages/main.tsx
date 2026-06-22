@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { CitySearch, type CitySearchResult } from "../components/CitySearch";
 import { LocalWeatherCard } from "../components/LocalWeatherCard";
 import {
 	type CityWeatherData,
 	WorldCitiesCarousel,
 } from "../components/WorldCitiesCarousel";
+import { useCitySearch } from "../hooks/useCitySearch";
 import { useWeatherSocket } from "../hooks/useWeatherSocket";
 
 const WEATHER_API_URL =
@@ -15,6 +17,20 @@ export default function MainPage() {
 	const [cityError, setCityError] = useState<string | null>(null);
 	const [isCitiesLoading, setIsCitiesLoading] = useState(true);
 	const [activeCityIndex, setActiveCityIndex] = useState(0);
+	const {
+		query: searchQuery,
+		setQuery: setSearchQuery,
+		suggestions,
+		clearSuggestions,
+		searchError,
+		isSearching,
+	} = useCitySearch(WEATHER_API_URL);
+	const [selectedCityWeather, setSelectedCityWeather] =
+		useState<CityWeatherData | null>(null);
+	const [selectedCityError, setSelectedCityError] = useState<string | null>(
+		null,
+	);
+	const [isSelectedCityLoading, setIsSelectedCityLoading] = useState(false);
 
 	useEffect(() => {
 		const loadCities = async () => {
@@ -78,6 +94,41 @@ export default function MainPage() {
 		setActiveCityIndex((currentIndex) => (currentIndex + 1) % cities.length);
 	};
 
+	const selectCity = async (city: CitySearchResult) => {
+		try {
+			clearSuggestions();
+			setSelectedCityWeather(null);
+			setSelectedCityError(null);
+			setIsSelectedCityLoading(true);
+
+			const params = new URLSearchParams({
+				lat: city.latitude.toString(),
+				lon: city.longitude.toString(),
+				city: city.name,
+				country: city.country,
+			});
+			const response = await fetch(
+				`${WEATHER_API_URL}/weather/city?${params.toString()}`,
+			);
+
+			if (!response.ok) {
+				throw new Error("Nao foi possivel carregar os detalhes da cidade");
+			}
+
+			const data: CityWeatherData = await response.json();
+
+			setSelectedCityWeather(data);
+		} catch (loadError) {
+			setSelectedCityError(
+				loadError instanceof Error
+					? loadError.message
+					: "Nao foi possivel carregar os detalhes da cidade",
+			);
+		} finally {
+			setIsSelectedCityLoading(false);
+		}
+	};
+
 	return (
 		<main className="min-h-screen overflow-hidden bg-slate-950 px-5 py-8 text-white sm:px-8 lg:px-12">
 			<div className="mx-auto flex max-w-7xl flex-col gap-8">
@@ -113,6 +164,18 @@ export default function MainPage() {
 						onSelectCity={setActiveCityIndex}
 					/>
 				</section>
+
+				<CitySearch
+					query={searchQuery}
+					suggestions={suggestions}
+					selectedCityWeather={selectedCityWeather}
+					isSearching={isSearching}
+					isCityWeatherLoading={isSelectedCityLoading}
+					searchError={searchError}
+					selectedCityError={selectedCityError}
+					onQueryChange={setSearchQuery}
+					onSelectCity={selectCity}
+				/>
 			</div>
 		</main>
 	);

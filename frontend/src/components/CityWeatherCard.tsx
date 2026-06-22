@@ -12,9 +12,13 @@ interface CityWeatherData extends WeatherData {
 
 interface CityWeatherCardProps {
 	cityWeather: CityWeatherData;
+	showDetails?: boolean;
 }
 
-export function CityWeatherCard({ cityWeather }: CityWeatherCardProps) {
+export function CityWeatherCard({
+	cityWeather,
+	showDetails = false,
+}: CityWeatherCardProps) {
 	return (
 		<div className="rounded-[1.5rem] bg-slate-900/80 p-6 ring-1 ring-white/10">
 			<div className="flex items-start justify-between gap-4">
@@ -43,6 +47,33 @@ export function CityWeatherCard({ cityWeather }: CityWeatherCardProps) {
 					label="Vento"
 					value={`${formatNumber(cityWeather.windSpeed, 1)} km/h`}
 				/>
+				{showDetails && cityWeather.apparentTemperature !== undefined && (
+					<MiniMetric
+						label="Sensacao"
+						value={`${formatNumber(cityWeather.apparentTemperature)}°C`}
+					/>
+				)}
+				{showDetails && cityWeather.precipitation !== undefined && (
+					<MiniMetric
+						label="Chuva"
+						value={`${formatNumber(cityWeather.precipitation, 1)} mm`}
+					/>
+				)}
+				{showDetails && cityWeather.cloudCover !== undefined && (
+					<MiniMetric
+						label="Nuvens"
+						value={`${formatNumber(cityWeather.cloudCover)}%`}
+					/>
+				)}
+				{showDetails && (
+					<MiniMetric
+						label="Coordenadas"
+						value={`${formatNumber(cityWeather.latitude, 2)}, ${formatNumber(
+							cityWeather.longitude,
+							2,
+						)}`}
+					/>
+				)}
 			</div>
 
 			<p className="mt-6 text-sm text-slate-400">
